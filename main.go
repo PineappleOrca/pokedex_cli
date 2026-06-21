@@ -6,6 +6,8 @@ import (
 	"os"
 	"strings"
 	"strconv"
+	//"encoding/json"
+	"net/http"
 )
 
 type cliCommand struct {
@@ -41,9 +43,15 @@ func commandHelp() error {
 
 func commandMap() error {
 	fmt.Println("Do something...")
-	location_area_url_base := 'https://pokeapi.co/api/v2/location-area/'
+	location_area_url_base := "https://pokeapi.co/api/v2/location-area/"
 	for i:=0 ; i < 20; i++{
-		location_url := location_area_url_base + i+1
+		location_url := location_area_url_base + strconv.Itoa(i+1)
+		resp, err:= http.Get(location_url)
+		if err != nil{
+			fmt.Println("Error obtaining data from PokeAPI with error %s", err)
+		}else{
+			fmt.Println(resp)
+		}
 	}
 	return nil
 }
