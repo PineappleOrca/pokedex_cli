@@ -100,7 +100,7 @@ func commandHelp() error {
 
 func commandMap() error {
 	location_area_url_base := `https://pokeapi.co/api/v2/location-area/`
-	for i := 0; i < 1; i++ {
+	for i := 0; i < 20; i++ {
 		location_url := location_area_url_base + strconv.Itoa(i+1)
 		res, err := http.Get(location_url)
 		if err != nil {
@@ -113,7 +113,7 @@ func commandMap() error {
 		}
 		var location Location
 		err = json.Unmarshal(body, &location)
-		fmt.Println(location.Location.Name)
+		fmt.Println(location.Name)
 	}
 	return nil
 }
