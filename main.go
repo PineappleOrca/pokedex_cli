@@ -5,14 +5,25 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"os"
-	"strconv"
-	"strings"
-
-	//"encoding/json"
 	"net/http"
-	//"io"
+	"os"
+	"strings"
 )
+
+type config struct {
+	Next     string
+	Previous string
+}
+
+type ShallowLocationList struct {
+	Count    int    `json:"count"`
+	Next     string `json:"next"`
+	Previous string `json:"previous"`
+	Results  []struct {
+		Name string `json:"name"`
+		URL  string `json:"url"`
+	} `json:"results"`
+}
 
 type Location struct {
 	EncounterMethodRates []struct {
@@ -70,7 +81,7 @@ type Location struct {
 type cliCommand struct {
 	name        string
 	description string
-	callback    func() error
+	callback    func(*config) error
 }
 
 func cleanInput(text string) []string {
@@ -82,13 +93,13 @@ func cleanInput(text string) []string {
 	return cleaned_output
 }
 
-func commandExit() error {
+func commandExit(cfg *config) error {
 	fmt.Println("Closing the Pokedex... Goodbye!")
 	os.Exit(0)
 	return nil
 }
 
-func commandHelp() error {
+func commandHelp(cfg *config) error {
 	fmt.Println("Welcome to the Pokedex!")
 	fmt.Println("Usage: ")
 	fmt.Println("help: Displays a help message")
@@ -98,32 +109,38 @@ func commandHelp() error {
 	return nil
 }
 
-func commandMap() error {
-	location_area_url_base := `https://pokeapi.co/api/v2/location-area/`
+func commandMap(cfg *config) error {
+	location_area_url_base := cfg.Next
+	if location_area_url_base == "" {
+		location_area_url_base = "https://pokeapi.co/api/v2/location-area/?limit=20&offset=0"
+	}
+	res, err := http.Get(location_area_url_base)
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer res.Body.Close()
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		fmt.Println(err)
+	}
+	var locationList ShallowLocationList
+	err = json.Unmarshal(body, &locationList)
 	for i := 0; i < 20; i++ {
-		location_url := location_area_url_base + strconv.Itoa(i+1)
-		res, err := http.Get(location_url)
-		if err != nil {
-			fmt.Println(err)
-		}
-		defer res.Body.Close()
-		body, err := io.ReadAll(res.Body)
-		if err != nil {
-			fmt.Println(err)
-		}
-		var location Location
-		err = json.Unmarshal(body, &location)
-		fmt.Println(location.Name)
+		fmt.Println(locationList.Results[i].Name)
 	}
 	return nil
 }
 
-func commandMapb() error {
+func commandMapb(cfg *config) error {
 	fmt.Println("Do something in reverse.....")
 	return nil
 }
 
 func main() {
+	cfg := &config{
+		Next:     "https://pokeapi.co/api/v2/location-area/?limit=20&offset=0",
+		Previous: "",
+	}
 	scanner := bufio.NewScanner(os.Stdin)
 	supportedCommands := map[string]cliCommand{
 		"exit": {
@@ -164,7 +181,7 @@ func main() {
 			fmt.Println("Unknown command")
 			continue
 		}
-		err := command.callback()
+		err := command.callback(cfg)
 		if err != nil {
 			fmt.Println("Error executing command:", err)
 		}
