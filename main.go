@@ -125,8 +125,10 @@ func commandMap(cfg *config) error {
 	}
 	var locationList ShallowLocationList
 	err = json.Unmarshal(body, &locationList)
-	for i := 0; i < 20; i++ {
-		fmt.Println(locationList.Results[i].Name)
+	cfg.Next = locationList.Next
+	cfg.Previous = locationList.Previous
+	for _, loc := range locationList.Results {
+		fmt.Println(loc.Name)
 	}
 	return nil
 }
