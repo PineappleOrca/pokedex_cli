@@ -134,7 +134,27 @@ func commandMap(cfg *config) error {
 }
 
 func commandMapb(cfg *config) error {
-	fmt.Println("Do something in reverse.....")
+	if cfg.Previous == "" {
+		fmt.Println("you are on the first page, please use map to navigate forward!")
+		return nil
+	}
+	location_previous := cfg.Previous
+	res, err := http.Get(location_previous)
+	if err != nil {
+		fmt.Println("Error going backwards")
+	}
+	defer res.Body.Close()
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		fmt.Println(err)
+	}
+	var locationList ShallowLocationList
+	err = json.Unmarshal(body, &locationList)
+	cfg.Next = locationList.Next
+	cfg.Previous = locationList.Previous
+	for _, loc := range locationList.Results {
+		fmt.Println(loc.Name)
+	}
 	return nil
 }
 
