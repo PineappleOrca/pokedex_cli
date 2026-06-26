@@ -160,7 +160,11 @@ func commandMapb(cfg *config, args ...string) error {
 }
 
 func commandExplore(cfg *config, args ...string) error {
-	location := "eterna-forest-area"
+	location := args[0]
+	if len(args) == 0 {
+		return fmt.Errorf("No location provided to explore, please provide a location!")
+	}
+	//location := args
 	url := "https://pokeapi.co/api/v2/location-area/" + location
 	res, err := http.Get(url)
 	if err != nil {
@@ -177,11 +181,6 @@ func commandExplore(cfg *config, args ...string) error {
 		pokemonName := locationData.PokemonEncounters[item].Pokemon.Name
 		fmt.Println(pokemonName)
 	}
-	if len(args) == 0 {
-		return fmt.Errorf("No location provided to explore, please provide a location!")
-	}
-	fmt.Println(args)
-	//fmt.Printf("Exploring %s.....", location)
 	return nil
 }
 
@@ -235,7 +234,11 @@ func main() {
 			fmt.Println("Unknown command")
 			continue
 		}
-		err := command.callback(cfg)
+		additionalInput := ""
+		if len(words) > 1 {
+			additionalInput = words[1]
+		}
+		err := command.callback(cfg, additionalInput)
 		if err != nil {
 			fmt.Println("Error executing command:", err)
 		}
