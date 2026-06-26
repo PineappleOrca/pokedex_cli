@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"math/rand"
@@ -407,6 +408,7 @@ func commandHelp(cfg *config, args ...string) error {
 	fmt.Println("explore: Lists all of the Pokemon available here...")
 	fmt.Println("catch: catches a pokemon available in the area")
 	fmt.Println("inspect: inspects a pokemon in the pokedex which you have caught")
+	fmt.Println("pokedex: shows all the pokemon which you have caught")
 	return nil
 }
 
@@ -529,7 +531,7 @@ func commandInspect(cfg *config, args ...string) error {
 
 	data, ok := cfg.caughtPokemon[pokemonName]
 	if !ok {
-		fmt.Errorf("%s is not in your list of caught pokemon, please enter a name from the pokemon you have caught")
+		return errors.New("not in inventory!")
 	}
 	fmt.Printf("Name: %s\n", pokemonName)
 	fmt.Printf("Height: %d\n", data.Height)
@@ -544,6 +546,14 @@ func commandInspect(cfg *config, args ...string) error {
 	fmt.Println("Types: ")
 	fmt.Printf("  - %s\n", data.Types[0].Type.Name)
 	fmt.Printf("  - %s\n", data.Types[1].Type.Name)
+	return nil
+}
+
+func commandPokedex(cfg *config, args ...string) error {
+	fmt.Println("Your Pokedex: ")
+	for pokemon := range cfg.caughtPokemon {
+		fmt.Printf(" - %s\n", pokemon)
+	}
 	return nil
 }
 
@@ -590,6 +600,11 @@ func main() {
 			name:        "inspect",
 			description: "inspects a pokemon to display it's stats",
 			callback:    commandInspect,
+		},
+		"pokedex": {
+			name:        "pokedex",
+			description: "shows all the pokemon the user has caught",
+			callback:    commandPokedex,
 		},
 	}
 
