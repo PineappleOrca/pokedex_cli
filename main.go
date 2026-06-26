@@ -521,6 +521,32 @@ func commandCatch(cfg *config, args ...string) error {
 	return nil
 }
 
+func commandInspect(cfg *config, args ...string) error {
+	if len(args) == 0 {
+		fmt.Errorf("Please enter the name of a pokemon in your inventory to inspect")
+	}
+	pokemonName := args[0]
+
+	data, ok := cfg.caughtPokemon[pokemonName]
+	if !ok {
+		fmt.Errorf("%s is not in your list of caught pokemon, please enter a name from the pokemon you have caught")
+	}
+	fmt.Printf("Name: %s\n", pokemonName)
+	fmt.Printf("Height: %d\n", data.Height)
+	fmt.Printf("Weight: %d\n", data.Weight)
+	fmt.Println("Stats:")
+	fmt.Printf(" -hp: %d\n", data.Stats[0].BaseStat)
+	fmt.Printf(" -attack: %d\n", data.Stats[1].BaseStat)
+	fmt.Printf(" -defense: %d\n", data.Stats[2].BaseStat)
+	fmt.Printf(" -special-attack: %d\n", data.Stats[3].BaseStat)
+	fmt.Printf(" -special-defense: %d\n", data.Stats[4].BaseStat)
+	fmt.Printf(" -speed: %d\n", data.Stats[5].BaseStat)
+	fmt.Println("Types: ")
+	fmt.Printf("  - %s\n", data.Types[0].Type.Name)
+	fmt.Printf("  - %s\n", data.Types[1].Type.Name)
+	return nil
+}
+
 func main() {
 	cfg := &config{
 		Next:          "https://pokeapi.co/api/v2/location-area/?limit=20&offset=0",
@@ -559,6 +585,11 @@ func main() {
 			name:        "catch",
 			description: "catches a pokemon in the location",
 			callback:    commandCatch,
+		},
+		"inspect": {
+			name:        "inspect",
+			description: "inspects a pokemon to display it's stats",
+			callback:    commandInspect,
 		},
 	}
 
