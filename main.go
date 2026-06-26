@@ -159,8 +159,9 @@ func commandMapb(cfg *config) error {
 	return nil
 }
 
-func commandExplore(cfg *config) error {
-	fmt.Println("Exporting the area.....")
+func commandExplore(cfg *config, args ...string) error {
+	location := args[0]
+	fmt.Printf("Exporting %s.....", location)
 	return nil
 }
 
