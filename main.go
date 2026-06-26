@@ -7,12 +7,15 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"pokedex/internal/pokecache"
 	"strings"
+	"time"
 )
 
 type config struct {
 	Next     string
 	Previous string
+	cache    *pokecache.Cache
 }
 
 type ShallowLocationList struct {
@@ -160,23 +163,30 @@ func commandMapb(cfg *config, args ...string) error {
 }
 
 func commandExplore(cfg *config, args ...string) error {
-	location := args[0]
 	if len(args) == 0 {
 		return fmt.Errorf("No location provided to explore, please provide a location!")
 	}
-	//location := args
-	url := "https://pokeapi.co/api/v2/location-area/" + location
-	res, err := http.Get(url)
-	if err != nil {
-		fmt.Errorf("Error with location-name please try again!")
-	}
-	defer res.Body.Close()
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		fmt.Errorf("Error Reading into data variable!")
+	location := args[0]
+	body, ok := cfg.cache.Get(location)
+	if !ok {
+		//location := args
+		url := "https://pokeapi.co/api/v2/location-area/" + location
+		res, err := http.Get(url)
+		if err != nil {
+			fmt.Errorf("Error with location-name please try again!")
+		}
+		defer res.Body.Close()
+		body, err = io.ReadAll(res.Body)
+		if err != nil {
+			fmt.Errorf("Error Reading into data variable!")
+		}
+		cfg.cache.Add(location, body)
 	}
 	var locationData Location
-	err = json.Unmarshal(body, &locationData)
+	err := json.Unmarshal(body, &locationData)
+	if err != nil {
+		fmt.Errorf("Issue with unmarshalling the data")
+	}
 	for item := range locationData.PokemonEncounters {
 		pokemonName := locationData.PokemonEncounters[item].Pokemon.Name
 		fmt.Println(pokemonName)
@@ -188,6 +198,7 @@ func main() {
 	cfg := &config{
 		Next:     "https://pokeapi.co/api/v2/location-area/?limit=20&offset=0",
 		Previous: "",
+		cache:    pokecache.NewCache(5 * time.Minute),
 	}
 	scanner := bufio.NewScanner(os.Stdin)
 	supportedCommands := map[string]cliCommand{
