@@ -110,6 +110,8 @@ func commandHelp(cfg *config, args ...string) error {
 	fmt.Println("map: Displays the next 20 locations available...")
 	fmt.Println("mapb: Displays the previous 20 locations available....")
 	fmt.Println("explore: Lists all of the Pokemon available here...")
+	fmt.Println("catch: catches a pokemon available in the area")
+	fmt.Println("inspect: inspects a pokemon in the pokedex which you have caught")
 	return nil
 }
 
@@ -194,6 +196,15 @@ func commandExplore(cfg *config, args ...string) error {
 	return nil
 }
 
+func commandCatch(cfg *config, args ...string) error {
+	if len(args) == 0 {
+		fmt.Errorf("Please enter a pokemon's name to catch!")
+	}
+	pokemonName := args[0]
+	fmt.Printf("Throwing a Pokeball at %s...\n", pokemonName)
+	return nil
+}
+
 func main() {
 	cfg := &config{
 		Next:     "https://pokeapi.co/api/v2/location-area/?limit=20&offset=0",
@@ -226,6 +237,11 @@ func main() {
 			name:        "explore",
 			description: "Explores all the Pokemon available at the location",
 			callback:    commandExplore,
+		},
+		"catch": {
+			name:        "catch",
+			description: "catches a pokemon in the location",
+			callback:    commandCatch,
 		},
 	}
 
