@@ -16,14 +16,14 @@ type Cache struct {
 	interval time.Duration
 }
 
-func NewCache(duration time.Duration) Cache {
+func NewCache(duration time.Duration) *Cache {
 	newCache := &Cache{
 		cache:    make(map[string]cacheEntry),
 		interval: duration,
 	}
-	go newCache.reapLoop(duration)
+	go newCache.reapLoop()
 
-	return *newCache
+	return newCache
 }
 
 func (c *Cache) Add(key string, val []byte) {
@@ -44,8 +44,9 @@ func (c *Cache) Get(key string) ([]byte, bool) {
 	return container, true
 }
 
-func (c *Cache) reapLoop(duration time.Duration) {
-	ticker := time.NewTicker(duration)
+func (c *Cache) reapLoop() {
+	ticker := time.NewTicker(c.cache)
+	defer ticker.Stop()
 	for range ticker.C {
 		c.mu.Lock()
 		for key := range c.cache {
@@ -53,7 +54,6 @@ func (c *Cache) reapLoop(duration time.Duration) {
 				delete(c.cache, key)
 			}
 		}
-		defer c.mu.Unlock()
+		c.mu.Unlock()
 	}
-	defer ticker.Stop()
 }
