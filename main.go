@@ -81,7 +81,7 @@ type Location struct {
 type cliCommand struct {
 	name        string
 	description string
-	callback    func(*config) error
+	callback    func(*config, ...string) error
 }
 
 func cleanInput(text string) []string {
@@ -93,13 +93,13 @@ func cleanInput(text string) []string {
 	return cleaned_output
 }
 
-func commandExit(cfg *config) error {
+func commandExit(cfg *config, args ...string) error {
 	fmt.Println("Closing the Pokedex... Goodbye!")
 	os.Exit(0)
 	return nil
 }
 
-func commandHelp(cfg *config) error {
+func commandHelp(cfg *config, args ...string) error {
 	fmt.Println("Welcome to the Pokedex!")
 	fmt.Println("Usage: ")
 	fmt.Println("help: Displays a help message")
@@ -110,7 +110,7 @@ func commandHelp(cfg *config) error {
 	return nil
 }
 
-func commandMap(cfg *config) error {
+func commandMap(cfg *config, args ...string) error {
 	location_area_url_base := cfg.Next
 	if location_area_url_base == "" {
 		location_area_url_base = "https://pokeapi.co/api/v2/location-area/?limit=20&offset=0"
@@ -134,7 +134,7 @@ func commandMap(cfg *config) error {
 	return nil
 }
 
-func commandMapb(cfg *config) error {
+func commandMapb(cfg *config, args ...string) error {
 	if cfg.Previous == "" {
 		fmt.Println("you are on the first page, please use map to navigate forward!")
 		return nil
@@ -160,8 +160,28 @@ func commandMapb(cfg *config) error {
 }
 
 func commandExplore(cfg *config, args ...string) error {
-	location := args[0]
-	fmt.Printf("Exporting %s.....", location)
+	location := "eterna-forest-area"
+	url := "https://pokeapi.co/api/v2/location-area/" + location
+	res, err := http.Get(url)
+	if err != nil {
+		fmt.Errorf("Error with location-name please try again!")
+	}
+	defer res.Body.Close()
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		fmt.Errorf("Error Reading into data variable!")
+	}
+	var locationData Location
+	err = json.Unmarshal(body, &locationData)
+	for item := range locationData.PokemonEncounters {
+		pokemonName := locationData.PokemonEncounters[item].Pokemon.Name
+		fmt.Println(pokemonName)
+	}
+	if len(args) == 0 {
+		return fmt.Errorf("No location provided to explore, please provide a location!")
+	}
+	fmt.Println(args)
+	//fmt.Printf("Exploring %s.....", location)
 	return nil
 }
 
