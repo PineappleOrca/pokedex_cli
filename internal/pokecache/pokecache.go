@@ -21,7 +21,7 @@ func NewCache(duration time.Duration) *Cache {
 		cache:    make(map[string]cacheEntry),
 		interval: duration,
 	}
-	go newCache.reapLoop()
+	go newCache.reapLoop(duration)
 
 	return newCache
 }
@@ -39,13 +39,11 @@ func (c *Cache) Get(key string) ([]byte, bool) {
 	if !ok {
 		return nil, false
 	}
-	container := make([]byte, 0)
-	container = append(container, data.val)
-	return container, true
+	return data.val, true
 }
 
-func (c *Cache) reapLoop() {
-	ticker := time.NewTicker(c.cache)
+func (c *Cache) reapLoop(duration time.Duration) {
+	ticker := time.NewTicker(duration)
 	defer ticker.Stop()
 	for range ticker.C {
 		c.mu.Lock()
