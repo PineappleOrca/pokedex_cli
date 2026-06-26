@@ -106,6 +106,7 @@ func commandHelp(cfg *config) error {
 	fmt.Println("exit: Exit the Pokedex")
 	fmt.Println("map: Displays the next 20 locations available...")
 	fmt.Println("mapb: Displays the previous 20 locations available....")
+	fmt.Println("explore: Lists all of the Pokemon available here...")
 	return nil
 }
 
@@ -158,6 +159,11 @@ func commandMapb(cfg *config) error {
 	return nil
 }
 
+func commandExplore(cfg *config) error {
+	fmt.Println("Exporting the area.....")
+	return nil
+}
+
 func main() {
 	cfg := &config{
 		Next:     "https://pokeapi.co/api/v2/location-area/?limit=20&offset=0",
@@ -184,6 +190,11 @@ func main() {
 			name:        "mapb",
 			description: "Displays the previous 20 locations",
 			callback:    commandMapb,
+		},
+		"explore": {
+			name:        "explore",
+			description: "Explores all the Pokemon available at the location",
+			callback:    commandExplore,
 		},
 	}
 
